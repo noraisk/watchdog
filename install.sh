@@ -38,7 +38,7 @@ fi
 
 echo "[+] Installing Dependencies"
 
-echo "deb http://cz.archive.ubuntu.com/ubuntu bionic main universe" | sudo tee /etc/apt/sources.list.d/skipfish.source.list
+echo "deb http://ee.archive.ubuntu.com/ubuntu bionic main universe" | sudo tee /etc/apt/sources.list.d/skipfish.source.list
 sudo apt-get install -y wget curl python-pip python3 python3-pip unzip
 sudo pip install -r external-requirements.txt
 
@@ -49,10 +49,6 @@ sudo mkdir -p /data/db
 sudo service mongodb restart
 
 echo "[+] Setting up Configs"
-
-echo -n "Enter Web application root path: (default: /var/www/html) "
-#read -t 10 WEB_DIR
-#echo ""
 
 sudo python configdb.py ${WEB_DIR:-/var/www/html}
 
