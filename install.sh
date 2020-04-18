@@ -1,19 +1,36 @@
-#apt-get update
+#NAME="Ubuntu"
+#VERSION="18.04.4 LTS (Bionic Beaver)"
+
+apt update && apt install git nano sudo dialog lsof net-tools
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-export LC_ALL=en_US.UTF-8
-if grep -q "export LC_ALL=en_US.UTF-8" ~/.bash_profile;then
+export LC_ALL=en_US.C
+if grep -q "export LC_ALL=en_US.C" ~/.bash_profile;then
    echo ""
 else
-   echo "export LC_ALL=en_US.UTF-8" >> ~/.bash_profile
+   echo "export LC_ALL=en_US.C" >> ~/.bash_profile
+fi
+
+# https://stackoverflow.com/questions/32892039/i-want-to-install-pyv8-for-using-python-wappalyzer-but-i-cant-fix-this-error
+ARCH=$(uname -m)
+if [ "$ARCH" = "i686" ]; then
+        wget -c "https://raw.githubusercontent.com/emmetio/pyv8-binaries/master/pyv8-linux32.zip"
+        unzip pyv8-linux32.zip
+        sudo cp *PyV8* /usr/lib/python2.7/dist-packages/
+fi
+if [ "$ARCH" = "x86_64" ]; then
+        wget -c "https://raw.githubusercontent.com/emmetio/pyv8-binaries/master/pyv8-linux64.zip"
+        unzip pyv8-linux64.zip
+        rm -rf /usr/lib/python2.7/dist-packages/*PyV8*
+        sudo cp *PyV8* /usr/lib/python2.7/dist-packages/
 fi
 
 echo "[+] Installing Dependencies"
 
-echo "deb http://cz.archive.ubuntu.com/ubuntu trusty main universe" | sudo tee /etc/apt/sources.list.d/skipfish.source.list
+echo "deb http://cz.archive.ubuntu.com/ubuntu bionic main universe" | sudo tee /etc/apt/sources.list.d/skipfish.source.list
 sudo apt-get install -y wget curl python-pip python3 python3-pip unzip
 sudo pip install -r external-requirements.txt
 
@@ -26,8 +43,8 @@ sudo service mongodb restart
 echo "[+] Setting up Configs"
 
 echo -n "Enter Web application root path: (default: /var/www/html) "
-read -t 10 WEB_DIR
-echo ""
+#read -t 10 WEB_DIR
+#echo ""
 
 sudo python configdb.py ${WEB_DIR:-/var/www/html}
 
@@ -47,7 +64,7 @@ echo "[+] Installing NMap"
 sudo apt-get install -y nmap
 
 echo "[+] Installing NodeJs"
-curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash - && apt-get install -y nodejs
+curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash - && apt-get install -y nodejs
 sudo ln -s /usr/bin/nodejs /usr/sbin/node
 
 echo "[+] Installing npm"
@@ -66,7 +83,7 @@ sudo ln -s ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bi
 sudo ln -s ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
 sudo rm -rf ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64.tar.bz2
 
-sudo apt-get install libfontconfig
+echo yes | sudo apt-get install libfontconfig
 
 
 echo "[+] Installing Phantalyzer"
@@ -83,7 +100,7 @@ sudo python setup.py install
 # sudo rm -rf ${cwd}/Tools/wapiti.tar.gz
 
 echo "[+] Installing SkipFish"
-sudo apt-get install skipfish
+echo yes | sudo apt-get install skipfish
 
 cd ${cwd}/Tools
 echo "[+] Installing CVE-Search"
@@ -113,7 +130,8 @@ sudo apt-get purge -y `dpkg -l | grep php| awk '{print $2}' |tr "\n" " "`
 sudo apt-get install -y python-software-properties
 sudo add-apt-repository ppa:ondrej/php
 sudo apt-get update
-sudo apt-get install -y apache2 php5.6 php5.6-mongo
+sudo apt-get install -y apache2 php7.2 php7.2-mongo
+
 
 sudo cp -r ${cwd}/Frontend/* ${WEB_DIR:-/var/www/html}/.
 
