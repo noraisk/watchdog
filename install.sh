@@ -1,18 +1,19 @@
 #NAME="Ubuntu"
 #VERSION="18.04.4 LTS (Bionic Beaver)"
 
-apt update && apt install git nano sudo dialog lsof net-tools
+apt update
+echo yes | apt install git nano sudo dialog lsof net-tools exiftool
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-export LC_ALL=en_US.C
-if grep -q "export LC_ALL=en_US.C" ~/.bash_profile;then
-   echo ""
-else
-   echo "export LC_ALL=en_US.C" >> ~/.bash_profile
-fi
+# export LC_ALL=en_US.C
+# if grep -q "export LC_ALL=en_US.C" ~/.bash_profile;then
+#    echo ""
+# else
+#    echo "export LC_ALL=en_US.C" >> ~/.bash_profile
+# fi
 
 export PYTHONWARNINGS="ignore:Unverified HTTPS request"
 if grep -q "export PYTHONWARNINGS" ~/.bash_profile;then
@@ -108,7 +109,7 @@ echo yes | sudo apt-get install skipfish
 
 cd ${cwd}/Tools
 echo "[+] Installing CVE-Search"
-git checkout https://github.com/cve-search/cve-search/
+git clone https://github.com/cve-search/cve-search
 mv cve-search cve-search-master
 
 # wget https://github.com/cve-search/cve-search/archive/master.zip -O cve-search-master.zip
