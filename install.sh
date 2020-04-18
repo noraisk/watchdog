@@ -14,6 +14,14 @@ else
    echo "export LC_ALL=en_US.C" >> ~/.bash_profile
 fi
 
+export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+if grep -q "export PYTHONWARNINGS" ~/.bash_profile;then
+   echo ""
+else
+   echo 'export PYTHONWARNINGS="ignore:Unverified HTTPS request"' >> ~/.bash_profile
+fi
+
+
 # https://stackoverflow.com/questions/32892039/i-want-to-install-pyv8-for-using-python-wappalyzer-but-i-cant-fix-this-error
 ARCH=$(uname -m)
 if [ "$ARCH" = "i686" ]; then
@@ -104,6 +112,9 @@ echo yes | sudo apt-get install skipfish
 
 cd ${cwd}/Tools
 echo "[+] Installing CVE-Search"
+git checkout https://github.com/cve-search/cve-search/
+mv cve-search cve-search-master
+
 # wget https://github.com/cve-search/cve-search/archive/master.zip -O cve-search-master.zip
 # unzip cve-search-master.zip
 # sudo rm -rf ${cwd}/Tools/cve-search-master.zip
@@ -134,6 +145,7 @@ sudo apt-get install -y apache2 php7.2 php7.2-mongo
 
 
 sudo cp -r ${cwd}/Frontend/* ${WEB_DIR:-/var/www/html}/.
+rm -rf /var/www/html/index.html
 
 sudo service apache2 restart
 
