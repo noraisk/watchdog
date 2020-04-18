@@ -1,0 +1,141 @@
+#NAME="Ubuntu"
+#VERSION="18.04.4 LTS (Bionic Beaver)"
+
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# export LC_ALL=en_US.C
+# if grep -q "export LC_ALL=en_US.C" ~/.bash_profile;then
+#    echo ""
+# else
+#    echo "export LC_ALL=en_US.C" >> ~/.bash_profile
+# fi
+
+export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+if grep -q "export PYTHONWARNINGS" ~/.bash_profile;then
+   echo ""
+else
+   echo 'export PYTHONWARNINGS="ignore:Unverified HTTPS request"' >> ~/.bash_profile
+fi
+
+
+# https://stackoverflow.com/questions/32892039/i-want-to-install-pyv8-for-using-python-wappalyzer-but-i-cant-fix-this-error
+ARCH=$(uname -m)
+if [ "$ARCH" = "i686" ]; then
+        wget -c "https://raw.githubusercontent.com/emmetio/pyv8-binaries/master/pyv8-linux32.zip"
+        unzip pyv8-linux32.zip
+        sudo cp *PyV8* /usr/lib/python2.7/dist-packages/
+fi
+if [ "$ARCH" = "x86_64" ]; then
+        wget -c "https://raw.githubusercontent.com/emmetio/pyv8-binaries/master/pyv8-linux64.zip"
+        unzip pyv8-linux64.zip
+        rm -rf /usr/lib/python2.7/dist-packages/*PyV8*
+        sudo cp *PyV8* /usr/lib/python2.7/dist-packages/
+fi
+
+echo "[+] Installing Dependencies"
+
+echo "deb http://ee.archive.ubuntu.com/ubuntu bionic main universe" | sudo tee /etc/apt/sources.list.d/skipfish.source.list
+sudo pip install -r external-requirements.txt
+
+echo "[+] Setting up DataBase"
+echo "[+] Installing Mongo Server"
+sudo mkdir -p /data/db
+sudo service mongodb restart
+
+echo "[+] Setting up Configs"
+
+sudo python configdb.py ${WEB_DIR:-/var/www/html}
+
+cwd=$(pwd)
+
+sudo mkdir -p ${cwd}/Tools/skipfish
+sudo mkdir -p ${WEB_DIR:-/var/www/html}/reports/
+sudo mkdir -p ${WEB_DIR:-/var/www/html}/reports/outputWapiti/
+sudo mkdir -p ${WEB_DIR:-/var/www/html}/reports/outputSkipfish/
+
+sudo chmod -R 777 ${cwd}/Tools
+sudo chmod -R 777 ${WEB_DIR:-/var/www/html}/reports
+
+cd ${cwd}/Tools
+
+echo "[+] Installing NodeJs"
+#curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash - && apt-get install -y nodejs
+sudo ln -s /usr/bin/nodejs /usr/sbin/node
+
+echo "[+] Installing PhantomJs"
+# wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O phantomjs-2.1.1-linux-x86_64.tar.bz2
+# tar xvf phantomjs-2.1.1-linux-x86_64.tar.bz2
+
+sudo rm /usr/local/share/phantomjs
+sudo rm /usr/local/bin/phantomjs
+sudo rm /usr/bin/phantomjs
+
+sudo ln -s ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/share/phantomjs
+sudo ln -s ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs
+sudo ln -s ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
+sudo rm -rf ${cwd}/Tools/phantomjs-2.1.1-linux-x86_64.tar.bz2
+
+echo "[+] Installing Phantalyzer"
+# wget https://github.com/mlconnor/phantalyzer/archive/master.zip -O phantalyzer-master.zip
+# unzip phantalyzer-master.zip
+# sudo rm -rf ${cwd}/Tools/phantalyzer-master.zip
+
+echo "[+] Installing Wapiti"
+# wget https://excellmedia.dl.sourceforge.net/project/wapiti/wapiti/wapiti-2.3.0/wapiti-2.3.0.tar.gz -O wapiti.tar.gz
+# tar xvf wapiti.tar.gz
+
+cd ${cwd}/Tools/wapiti-2.3.0
+sudo python setup.py install
+# sudo rm -rf ${cwd}/Tools/wapiti.tar.gz
+
+echo "[+] Installing SkipFish"
+echo yes | sudo apt-get install skipfish
+
+cd ${cwd}/Tools
+echo "[+] Installing CVE-Search"
+git clone https://github.com/cve-search/cve-search
+mv cve-search cve-search-master
+
+# wget https://github.com/cve-search/cve-search/archive/master.zip -O cve-search-master.zip
+# unzip cve-search-master.zip
+# sudo rm -rf ${cwd}/Tools/cve-search-master.zip
+
+cd ${cwd}/Tools/cve-search-master
+sudo pip3 install -r external-requirements.txt
+
+# echo "[+] Updating CVE-Search DataBase. This might take a while. Go have a cookie.. :)"
+# python3 sbin/db_mgmt.py -p
+# python3 sbin/db_mgmt_cpe_dictionary.py
+
+echo "[+] Verifying if all the tools are working properly"
+wapiti -h
+skipfish -h
+phantomjs -v
+nmap -v
+node --version
+npm -v
+
+echo "[+] Installing Front end"
+sudo apt-get purge -y `dpkg -l | grep php| awk '{print $2}' |tr "\n" " "`
+
+sudo apt-get install -y python-software-properties
+sudo add-apt-repository ppa:ondrej/php
+sudo apt-get update
+sudo apt-get install -y apache2 php7.2 php7.2-mongo
+
+
+sudo cp -r ${cwd}/Frontend/* ${WEB_DIR:-/var/www/html}/.
+rm -rf /var/www/html/index.html
+
+sudo service apache2 restart
+
+echo -e "${RED}[*] Installation compelted successfully${NC}"
+echo -e "${RED}[*] you can run WATCHDOG by using ${GREEN} python run.py${NC}"
+echo -e "${RED}[*] you can see the magic of WATCHDOG by browsing ${GREEN} http://localhost${NC}"
+
+
+
+
