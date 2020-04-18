@@ -1,10 +1,16 @@
 #NAME="Ubuntu"
 #VERSION="18.04.4 LTS (Bionic Beaver)"
 
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
+
+$ export LC_ALL=C
+cd /tmp
+pip install -e git://github.com/brokenseal/PyV8-OS-X#egg=pyv8
+git clone https://github.com/emmetio/pyv8-binaries.git
+unzip pyv8-binaries/pyv8-linux64.zip (or unzip appropriate zip file based on kernel version)
+mv *PyV8* src/pyv8/pyv8/.
 
 # export LC_ALL=en_US.C
 # if grep -q "export LC_ALL=en_US.C" ~/.bash_profile;then
@@ -119,13 +125,12 @@ node --version
 npm -v
 
 echo "[+] Installing Front end"
-sudo apt-get purge -y `dpkg -l | grep php| awk '{print $2}' |tr "\n" " "`
+# sudo apt-get purge -y `dpkg -l | grep php| awk '{print $2}' |tr "\n" " "`
 
-sudo apt-get install -y python-software-properties
-sudo add-apt-repository ppa:ondrej/php
-sudo apt-get update
-sudo apt-get install -y apache2 php7.2 php7.2-mongo
-
+# sudo apt-get install -y python-software-properties
+# sudo add-apt-repository ppa:ondrej/php
+# sudo apt-get update
+# sudo apt-get install -y apache2 php7.2 php7.2-mongo
 
 sudo cp -r ${cwd}/Frontend/* ${WEB_DIR:-/var/www/html}/.
 rm -rf /var/www/html/index.html
@@ -135,7 +140,3 @@ sudo service apache2 restart
 echo -e "${RED}[*] Installation compelted successfully${NC}"
 echo -e "${RED}[*] you can run WATCHDOG by using ${GREEN} python run.py${NC}"
 echo -e "${RED}[*] you can see the magic of WATCHDOG by browsing ${GREEN} http://localhost${NC}"
-
-
-
-
